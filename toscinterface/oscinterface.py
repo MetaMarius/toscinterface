@@ -1,7 +1,7 @@
 import socket
 from osc4py3.oscbuildparse import decode_packet, encode_packet, OSCMessage
 import threading
-
+from datetime import datetime
 
 class OscInterface:
     def __init__(self):
@@ -12,7 +12,7 @@ class OscInterface:
         self._port = 8000
         self._server = None
         self._streaming = False
-        self.all_responses = list()
+        self.all_responses = {}
         self.print_osc = False
 
     @property
@@ -81,17 +81,21 @@ class OscInterface:
             stop_msg = OSCMessage(self._default_disconnect_msg, ',f', (1,))
             self._server.sendto(encode_packet(stop_msg), self._server.getsockname())
 
-    def add_disconnect_msg(self, new_msg: str):
-        self._disconnect_messages.append(new_msg)
+    def add_disconnect_msg(self, new_msg: str | list[str]):
+        if isinstance(new_msg, str):
+            self._disconnect_messages.append(new_msg)
+        elif isinstance(new_msg, list):
+            for msg in new_msg:
+                self._disconnect_messages.append(msg)
 
     def __streaming_func(self):
-        current_responses = []
+        current_responses = {}
         while self._streaming:
             print('Awaiting Input...')
             data, address = self._server.recvfrom(1024)
             oscmsg = decode_packet(data)
-            self.all_responses.append(oscmsg)
-            current_responses.append(oscmsg)
+            self.all_responses[len(self.all_responses.keys())] = [oscmsg, datetime.now().strftime('%Y-%m-%d-%H-%M-%S')]
+            current_responses[len(current_responses.keys())] = [oscmsg, datetime.now().strftime('%Y-%m-%d-%H-%M-%S')]
             if self.print_osc:
                 print(oscmsg)
             if oscmsg.addrpattern in self._disconnect_messages or oscmsg.addrpattern == self._default_disconnect_msg:
@@ -100,6 +104,7 @@ class OscInterface:
                 self._server.shutdown(socket.SHUT_RDWR)
                 self._server.close()
                 return current_responses
+
             else:
                 continue
 

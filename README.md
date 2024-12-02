@@ -19,4 +19,4 @@ and extend possible interactions with TouchOSC is planned to be implemented in f
 Download TouchOSC here: https://hexler.net/touchosc
 
 toscinterface is developed on Windows 11. Compatibility with other operating systems is not 
-tested for.
+tested.
