@@ -4,9 +4,25 @@ import threading
 from datetime import datetime
 
 class OscInterface:
+    """
+    The base class representing an OscInterface object.
+
+    An OscInterface can receive OSC-Messages on a selectable port over the local network and record them for later use.
+
+        Attributes:
+            host_name (str): The name of the host-device.
+            host_ip (str): The IP address of the host-device.
+            port (int): The number of the current port used. Defaults to 8000.
+            streaming (bool): Indicates if the object is currently listening to incoming OSC messages or not.
+            print_osc (bool): Determines whether incoming OSC messages should be displayed in the console or not.
+            disconnect_messages (list): List of address patterns of OSC messages that will trigger the current stream
+                                        to stop when received.
+
+    """
     def __init__(self):
+        """Constructor of the OscInterface class"""
         self._disconnect_messages = []
-        self._default_disconnect_msg = '/!DISCONNECT'
+        self.__default_disconnect_msg = '/!DISCONNECT'
         self._host_name = socket.gethostname()
         self._host_ip = socket.gethostbyname(self._host_name)
         self._port = 8000
@@ -22,10 +38,6 @@ class OscInterface:
     @property
     def disconnect_messages(self):
         return self._disconnect_messages
-
-    @property
-    def default_disconnect_msg(self):
-        return self._default_disconnect_msg
 
     @property
     def host_ip(self):
@@ -78,15 +90,23 @@ class OscInterface:
             raise Exception('No stream is running')
         else:
             self._streaming = False
-            stop_msg = OSCMessage(self._default_disconnect_msg, ',f', (1,))
+            stop_msg = OSCMessage(self.__default_disconnect_msg, ',f', (1,))
             self._server.sendto(encode_packet(stop_msg), self._server.getsockname())
 
     def add_disconnect_msg(self, new_msg: str | list[str]):
         if isinstance(new_msg, str):
-            self._disconnect_messages.append(new_msg)
+            if new_msg[0] == '/':
+                self._disconnect_messages.append(new_msg)
+            else:
+                new_msg = '/' + new_msg
+                self._disconnect_messages.append(new_msg)
         elif isinstance(new_msg, list):
             for msg in new_msg:
-                self._disconnect_messages.append(msg)
+                if msg[0] == '/':
+                    self._disconnect_messages.append(msg)
+                else:
+                    msg = '/' + msg
+                    self._disconnect_messages.append(msg)
 
     def __streaming_func(self):
         current_responses = {}
@@ -98,13 +118,12 @@ class OscInterface:
             current_responses[len(current_responses.keys())] = [oscmsg, datetime.now().strftime('%Y-%m-%d-%H-%M-%S')]
             if self.print_osc:
                 print(oscmsg)
-            if oscmsg.addrpattern in self._disconnect_messages or oscmsg.addrpattern == self._default_disconnect_msg:
+            if oscmsg.addrpattern in self._disconnect_messages or oscmsg.addrpattern == self.__default_disconnect_msg:
                 self._streaming = False
                 print('[DISCONNECT RECEIVED] Stream stopped.')
                 self._server.shutdown(socket.SHUT_RDWR)
                 self._server.close()
                 return current_responses
-
             else:
                 continue
 

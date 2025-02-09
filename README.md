@@ -1,20 +1,12 @@
 # toscinterface
-A simple package to receive OSC messages in python sent by TouchOSC. 
+A simple package to receive and store OSC-messages in python.   
 
-Thus far the package contains only one class which instantiates an OscInterface() object.
+Thus far the package contains only one class which creates an OscInterface object. An OscInterface object is basically
+a UDP-Socket with extended functionality to save received messages and to communicate with TouchOSC. This way, any 
+device running TouchOSC can be used as an input device to control python-programs or record data entries.
 
-By calling the start_stream() method, a UDP-socket is initiated 
-that listens for incoming OSC messages on the specified port (default: 8000). The stream 
-can be blocking or non-blocking (via threading). Received messages are continuously stored 
-in the all_responses attribute of the OscInterface object. In theory, OSC messages sent by 
-any program or device can be received, but the package is specifically designed around the 
-functionalities of TouchOSC and its interfaces. Using this package in a different context
-may not work as intended.
-
-Port and IP-Address can be set manually via the attributes of the OscInterface object.
-
-Thus far the package only supports receiving OSC messages. Functionality to send OSC messages
-and extend possible interactions with TouchOSC is planned to be implemented in future versions.
+In theory, OSC messages sent by any program or device can be received, but the package is specifically designed around 
+the functionality and properties of TouchOSC. Using this package in a different context may not work as intended.
 
 Download TouchOSC here: https://hexler.net/touchosc
 

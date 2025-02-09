@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='toscinterface',
-    version='0.0.1',
+    version='0.0.2',
     packages=find_packages(),
     install_requires=['osc4py3>=1.0.8'],
     author='Marius Seiter',
